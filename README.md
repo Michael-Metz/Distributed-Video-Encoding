@@ -1,14 +1,28 @@
+# Table of Contents
+1. [Description](#description)
+2. [Motivation](#motivation)
+3. [How it Works](#how-it-works)
+
+
 ![](animation.gif)
 ---
 *animation showing the flow of the application. There are more jobs in `mysql` and those jobs would be distrubted to more clients I just did not want to keep animating them all*
 
 
+<a name="description"></a>
 # Description
 
 This project shows how a website can increase video encoding throughput by distributing encoding jobs. 
 
+<a name="motivation"></a>
+# Motivation
 
-## How it Works
+When you upload a video to YouTube, that video immediately goes into the `processing` state.  During this state your `raw` video is *transcoded* into many different resolutions and *codecs*.  Since you can watch YouTube videos on numerus devices (smart tv, phone, computer, etc), its naive to think that you’re watching the exact video file that you uploaded. In fact, you’re watching the transcoded version of that video that works best with your device and network connection.
+
+![](diagram.gif)
+
+<a name="how-it-works"></a>
+# How it Works
 
 * A client polls the TCP server for a JOB.
 The `TCP server` fetchs the first job where 
