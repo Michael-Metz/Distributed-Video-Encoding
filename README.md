@@ -2,6 +2,8 @@
 1. [Description](#description)
 2. [Motivation](#motivation)
 3. [How it Works](#how-it-works)
+4. [Limitations](#limitations)
+5. [From Now On](#from-now-on)
 
 
 ![](animation.gif)
@@ -20,6 +22,7 @@ This project shows how a website can increase video encoding throughput by distr
 When you upload a video to YouTube, that video immediately goes into the `processing` state.  During this state your `raw` video is *transcoded* into many different resolutions and *codecs*.  Since you can watch YouTube videos on numerus devices (smart tv, phone, computer, etc), its naive to think that you’re watching the exact video file that you uploaded. In fact, you’re watching the transcoded version of that video that works best with your device and network connection.
 
 ![](diagram.gif)
+*The above video can be found at [https://www.youtube.com/watch?v=CdOYwmmzlcA&t=21s](https://www.youtube.com/watch?v=CdOYwmmzlcA&t=21s)*
 
 <a name="how-it-works"></a>
 # How it Works
@@ -38,21 +41,13 @@ The `oldvideofilename` column indicates the name of the `raw video` file that is
 * The client then uploads the *transcoded* file to the s3 bucket using the `newvideofilename`.
 * The client then reports back to the TCP server in which `complete` is set to `1` for that specific job.
 
-|id |videoid|uploadid|oldvideofilename|newvideofilename    |width|height|crf|audiobitrate|inprogress|complete|workersignature|
-|---|------:|-------:|---------------:|-----------------:  |----:|-----:|---|-----------:|---------:|-------:|---------------|
-|1  |1      |1       |forest.mp4      |forest_852x480.mp4  |852  |480   |28 |128000      |0         |1       |haera          |
-|3  |1      |1       |forest.mp4      |forest_640x360.mp4  |640  |360   |28 |128000      |0         |1       |haera          |
-|4  |1      |1       |forest.mp4      |forest_426x240.mp4  |426  |240   |18 |128000      |0         |1       |zobrist        |
-|8  |1      |1       |forest.mp4      |forest_256x144.mp4  |256  |144   |18 |128000      |0         |1       |espo           |
-|9  |1      |1       |forest.mp4      |forest_56x32.mp4    |56   |32    |18 |128000      |0         |1       |schuffs        |
-|10 |1      |1       |forest.mp4      |forest_1920x1080.mp4|1920 |1080  |24 |128000      |0         |1       |metz           |
-|11 |1      |1       |pi.mp4          |pi_1920x1080.mp4    |1920 |1080  |24 |128000      |0         |1       |ilstu          |
-|12 |1      |1       |pi.mp4          |pi_1280x720.mp4     |1280 |720   |24 |128000      |0         |1       |schuffs        |
-|13 |1      |1       |pi.mp4          |pi_216x144.mp4      |216  |144   |24 |128000      |0         |1       |zobrist        |
-|14 |1      |1       |pi.mp4          |pi_96x64.mp4        |96   |64    |24 |128000      |0         |1       |the-unit       |
-|15 |1      |1       |pi.mp4          |pi_48x32.mp4        |48   |32    |24 |128000      |0         |1       |sauer          |
-|16 |1      |1       |pi.mp4          |pi_24x16.mp4        |24   |16    |24 |128000      |0         |1       |espo           |
-|17 |1      |1       |pi.mp4          |pi_360x240.mp4      |360  |240   |24 |128000      |0         |1       |haera          |
+|id |videoid|uploadid|oldvideofilename|newvideofilename    |width |height |crf|audiobitrate|inprogress|complete|workersignature  |
+|---|------:|-------:|---------------:|-------------------:|-----:|------:|---|-----------:|---------:|-------:|-----------------|
+|11 |1      |1       |shower_raw.mp4  |shower_1280x720.mp4 |1920  |1080   |24 |128000      |0         |1       |haera            |
+|12 |1      |1       |shower_raw.mp4  |shower_852x480.mp4  |1280  |720    |24 |128000      |1         |0       |schuffs          |
+|13 |1      |1       |shower_raw.mp4  |shower_640x360.mp4  |640   |360    |24 |128000      |1         |0       |espo             |
+|14 |1      |1       |shower_raw.mp4  |shower_426x240.mp4  |426   |240    |24 |128000      |0         |0       |                 |
+|15 |1      |1       |shower_raw.mp4  |shower_256x144xmp4  |256   |144    |24 |128000      |0         |0       |                 |
 
 ### sql for `job` table
 
@@ -108,6 +103,7 @@ aws_secret_access_key=
     for(Bucket bucket : buckets)
         System.out.println(bucket.getName());
 ```
+
 # Usage
 
 **Server**
@@ -132,8 +128,22 @@ Usage: java Client hostname port workername ffmpeg ffprobe
                  [ffprobe] : path to ffprobe
 ```
 
+<a name="limitations"></a>
+
 # Limitations
 
-It only works with .mp4 h264 files (they way I programmed is hardcoded)
+It only works with .mp4 h264 files (the way I programmed is hardcoded)
 
 Only one bucket/folder is used on s3 so no two file names can be the same
+
+<a name="from-now-on"></a>
+
+# From Now On
+
+If I were to continue adding to this project I would do the following
+
+* Transcode videos to the mpeg-dash standard
+* Programitcally create and destroy digital ocean droplet (clients) based on the quantity of jobs in table. (pub/sub)?
+* Investigate pub sub so client doesnt have to continually poll server
+* Investigate mysql table locks for mutual exclusion so we dont need a server (master slave architecture)
+
